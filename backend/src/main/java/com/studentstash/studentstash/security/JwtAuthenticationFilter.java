@@ -1,14 +1,16 @@
 package com.studentstash.studentstash.security;
 
-import java.io.IOException;
-
-import org.springframework.beans.factory.annotation.Autowired;
+import jakarta.servlet.FilterChain;
+import jakarta.servlet.ServletException;
+import jakarta.servlet.http.HttpServletRequest;
+import jakarta.servlet.http.HttpServletResponse;
 
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 
 import org.springframework.security.core.context.SecurityContextHolder;
 
 import org.springframework.security.core.userdetails.UserDetails;
+
 import org.springframework.security.core.userdetails.UserDetailsService;
 
 import org.springframework.security.web.authentication.WebAuthenticationDetailsSource;
@@ -17,65 +19,53 @@ import org.springframework.stereotype.Component;
 
 import org.springframework.web.filter.OncePerRequestFilter;
 
-import jakarta.servlet.FilterChain;
-import jakarta.servlet.ServletException;
-
-import jakarta.servlet.http.HttpServletRequest;
-import jakarta.servlet.http.HttpServletResponse;
+import java.io.IOException;
 
 @Component
-public class JwtAuthenticationFilter extends OncePerRequestFilter {
+public class JwtAuthenticationFilter
+        extends OncePerRequestFilter {
 
-    @Autowired
-    private JwtUtil jwtUtil;
+    private final JwtUtil jwtUtil;
 
-    @Autowired
-    private UserDetailsService userDetailsService;
+    private final UserDetailsService userDetailsService;
+
+    public JwtAuthenticationFilter(
+            JwtUtil jwtUtil,
+            UserDetailsService userDetailsService
+    ) {
+
+        this.jwtUtil = jwtUtil;
+        this.userDetailsService = userDetailsService;
+    }
 
     @Override
     protected void doFilterInternal(
             HttpServletRequest request,
             HttpServletResponse response,
-            FilterChain filterChain)
+            FilterChain filterChain
+    ) throws ServletException, IOException {
 
-            throws ServletException, IOException {
-
-        // SKIP AUTH APIs
-        String path = request.getServletPath();
-
-        if (path.startsWith("/api/auth")) {
-            filterChain.doFilter(request, response);
-            return;
-        }
-
-        // GET HEADER
         final String authHeader =
                 request.getHeader("Authorization");
 
         String jwt = null;
+
         String email = null;
 
-        // CHECK TOKEN EXISTS
-        if (authHeader != null &&
-                authHeader.startsWith("Bearer ")) {
+        // CHECK TOKEN
+        if (authHeader != null
+                && authHeader.startsWith("Bearer ")) {
 
             jwt = authHeader.substring(7);
 
-            try {
-
-                email = jwtUtil.extractEmail(jwt);
-
-            } catch (Exception e) {
-
-                System.out.println("Invalid JWT Token");
-
-            }
+            email = jwtUtil.extractEmail(jwt);
         }
 
         // AUTHENTICATE USER
-        if (email != null &&
-                SecurityContextHolder.getContext()
-                        .getAuthentication() == null) {
+        if (email != null
+                && SecurityContextHolder
+                .getContext()
+                .getAuthentication() == null) {
 
             UserDetails userDetails =
                     userDetailsService.loadUserByUsername(email);
@@ -86,13 +76,16 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
                         new UsernamePasswordAuthenticationToken(
                                 userDetails,
                                 null,
-                                userDetails.getAuthorities());
+                                userDetails.getAuthorities()
+                        );
 
                 authToken.setDetails(
                         new WebAuthenticationDetailsSource()
-                                .buildDetails(request));
+                                .buildDetails(request)
+                );
 
-                SecurityContextHolder.getContext()
+                SecurityContextHolder
+                        .getContext()
                         .setAuthentication(authToken);
             }
         }
