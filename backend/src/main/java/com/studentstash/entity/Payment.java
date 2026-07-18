@@ -7,40 +7,44 @@ import lombok.Setter;
 
 import java.math.BigDecimal;
 import java.time.LocalDateTime;
-import java.util.ArrayList;
-import java.util.List;
 
 @Entity
-@Table(name = "orders")
+@Table(name = "payments")
 @Getter
 @Setter
 @NoArgsConstructor
-public class Order {
+public class Payment {
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
-    @Column(nullable = false, unique = true, length = 30)
-    private String orderNumber;
+    @Column(nullable = false, unique = true, length = 50)
+    private String razorpayOrderId;
+
+    @Column(unique = true, length = 50)
+    private String razorpayPaymentId; // null until payment actually completes
+
+    @Column(length = 100)
+    private String razorpaySignature;
 
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "buyer_id", nullable = false)
     private User buyer;
 
-    @OneToMany(mappedBy = "order", cascade = CascadeType.ALL, orphanRemoval = true)
-    private List<OrderItem> items = new ArrayList<>();
-@OneToOne(mappedBy = "order", fetch = FetchType.LAZY)
-    private Payment payment;
+    @OneToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "order_id")
+    private Order order; // null until order is actually placed (post-verification)
+
     @Column(nullable = false, precision = 10, scale = 2)
-    private BigDecimal totalAmount;
+    private BigDecimal amount;
 
     @Enumerated(EnumType.STRING)
     @Column(nullable = false, length = 20)
-    private OrderStatus status;
+    private PaymentStatus status;
 
     @Column(nullable = false, length = 500)
-    private String shippingAddress;
+    private String shippingAddress; // carried through until order is created
 
     @Column(nullable = false, updatable = false)
     private LocalDateTime createdAt;
@@ -58,6 +62,5 @@ public class Order {
     protected void onUpdate() {
         this.updatedAt = LocalDateTime.now();
     }
-    
 
 }

@@ -41,7 +41,12 @@
     <version>0.12.6</version>
     <scope>runtime</scope>
 </dependency>
-
+<!-- Razorpay Java SDK -->
+<dependency>
+    <groupId>com.razorpay</groupId>
+    <artifactId>razorpay-java</artifactId>
+    <version>1.4.5</version>
+</dependency>
 <!-- Spring Security -->
 <dependency>
     <groupId>org.springframework.boot</groupId>

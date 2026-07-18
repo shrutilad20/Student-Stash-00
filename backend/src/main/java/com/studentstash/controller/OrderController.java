@@ -26,15 +26,7 @@ public class OrderController {
      * Will be REMOVED in Phase 9 — PaymentService will call
      * orderService.placeOrder(...) internally after Razorpay confirms payment.
      */
-    @PostMapping("/checkout-test")
-    @PreAuthorize("hasRole('BUYER')")
-    public ResponseEntity<OrderResponse> checkoutTest(@Valid @RequestBody CheckoutRequest request,
-                                                        Authentication authentication) {
-        OrderResponse response = orderService.placeOrder(
-                authentication.getName(), request.getShippingAddress());
-        return new ResponseEntity<>(response, HttpStatus.CREATED);
-    }
-
+  
     @GetMapping("/my-orders")
     @PreAuthorize("hasRole('BUYER')")
     public ResponseEntity<List<OrderResponse>> getMyOrders(Authentication authentication) {
